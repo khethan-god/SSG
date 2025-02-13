@@ -94,3 +94,23 @@ def split_nodes_link(old_nodes):
         if original_text != "":
             new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
+
+
+
+# Now using all the above functions we are going to write a simple function
+# that is going to take markdown text as input and then convert that text
+# into a list of TextNode instances
+
+def text_to_textnodes(text):
+    # first create a TextNode and since all these
+    # functions accept a list as input lets pass them
+    # as a list, because we need an iterable, not an object
+    # as input to `split_nodes_delimiter`
+    nodes = [TextNode(text, TextType.TEXT)]
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+    return nodes
+
