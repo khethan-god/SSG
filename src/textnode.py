@@ -43,5 +43,5 @@ def text_node_to_html_node(text_node):
         # here we use the img tag with empty value, since link and text are properties
         return LeafNode("img", "", {"src":text_node.url, "alt":text_node.text})
     if text_node.text_type == TextType.ITALIC:
-        return LeafNode(None, text_node.text)
+        return LeafNode("i", text_node.text)
     raise ValueError(f"invalid text type: {text_node.text_type}")
