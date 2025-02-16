@@ -2,10 +2,6 @@ from htmlnode import ParentNode
 from inline_markdown import text_to_textnodes
 from textnode import text_node_to_html_node
 
-# Now let's handle block level markdown functions
-# which help us separate a big markdown string into a list
-# of individual lines which we can then convert to text nodes
-
 block_type_paragraph = "paragraph"
 block_type_heading = "heading"
 block_type_code = "code"
@@ -15,30 +11,36 @@ block_type_ulist = "unordered_list"
 
 
 def markdown_to_blocks(markdown):
-    new_list = []
-    for t in markdown.split("\n\n"):
-        if t != "":
-            new_list.append(t.strip())
-    return new_list
+    blocks = markdown.split("\n\n")
+    filtered_blocks = []
+    for block in blocks:
+        if block == "":
+            continue
+        block = block.strip()
+        filtered_blocks.append(block)
+    return filtered_blocks
 
 
 def block_to_block_type(block):
-    # this function is used to declare the type of block
-    # which we get from the above function
     lines = block.split("\n")
 
     if block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
         return block_type_heading
-    if block.startswith("```") and block.endswith("```"):
+    if len(lines) > 1 and lines[0].startswith("```") and lines[-1].startswith("```"):
         return block_type_code
     if block.startswith(">"):
         for line in lines:
             if not line.startswith(">"):
                 return block_type_paragraph
         return block_type_quote
-    if block.startswith(("* ", "- ")):
+    if block.startswith("* "):
         for line in lines:
-            if not line.startswith(("* ", "- ")):
+            if not line.startswith("* "):
+                return block_type_paragraph
+        return block_type_ulist
+    if block.startswith("- "):
+        for line in lines:
+            if not line.startswith("- "):
                 return block_type_paragraph
         return block_type_ulist
     if block.startswith("1. "):
@@ -51,10 +53,8 @@ def block_to_block_type(block):
     return block_type_paragraph
 
 
-# This function is used to convert markdown into
-# HTMLNode instance
 def markdown_to_html_node(markdown):
-    blocks =  markdown_to_blocks(markdown)
+    blocks = markdown_to_blocks(markdown)
     children = []
     for block in blocks:
         html_node = block_to_html_node(block)
@@ -64,12 +64,18 @@ def markdown_to_html_node(markdown):
 
 def block_to_html_node(block):
     block_type = block_to_block_type(block)
-    if block_type == block_type_paragraph: return paragraph_to_html_node(block)
-    if block_type == block_type_heading: return heading_to_html_node(block)
-    if block_type == block_type_code: return code_to_html_node(block)
-    if block_type == block_type_olist: return olist_to_html_node(block)
-    if block_type == block_type_ulist: return ulist_to_html_node(block)
-    if block_type == block_type_quote: return quote_to_html_node(block)
+    if block_type == block_type_paragraph:
+        return paragraph_to_html_node(block)
+    if block_type == block_type_heading:
+        return heading_to_html_node(block)
+    if block_type == block_type_code:
+        return code_to_html_node(block)
+    if block_type == block_type_olist:
+        return olist_to_html_node(block)
+    if block_type == block_type_ulist:
+        return ulist_to_html_node(block)
+    if block_type == block_type_quote:
+        return quote_to_html_node(block)
     raise ValueError("invalid block type")
 
 
@@ -86,16 +92,19 @@ def paragraph_to_html_node(block):
     lines = block.split("\n")
     paragraph = " ".join(lines)
     children = text_to_children(paragraph)
-    return ParentNode('p', children)
+    return ParentNode("p", children)
 
 
 def heading_to_html_node(block):
     level = 0
     for char in block:
-        if char == "#": level += 1
-        else: break
-    if level + 1 >= len(block): raise ValueError(f"invalid heading level: {level}")
-    text = block[level+1:]
+        if char == "#":
+            level += 1
+        else:
+            break
+    if level + 1 >= len(block):
+        raise ValueError(f"invalid heading level: {level}")
+    text = block[level + 1 :]
     children = text_to_children(text)
     return ParentNode(f"h{level}", children)
 
